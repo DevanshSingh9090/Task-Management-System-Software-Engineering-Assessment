@@ -10,8 +10,8 @@ const router = Router();
 
 const cookieOpts = (maxAge: number) => ({
   httpOnly: true,
-  secure: config.COOKIE_SECURE,
-  sameSite: "lax" as const,
+  secure: true,
+  sameSite: "none" as const,
   maxAge
 });
 
@@ -71,7 +71,7 @@ router.get("/me", async (req, res, next) => {
             user: {
               id: payload.userId,
               email: payload.email,
-              name: payload.name   // ✅ ADD NAME HERE
+              name: payload.name
             }
           }
         });
