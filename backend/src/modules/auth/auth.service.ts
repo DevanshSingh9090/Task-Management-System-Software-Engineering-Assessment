@@ -40,6 +40,13 @@ export class AuthService {
       name: user.name
     });
 
+    // Save refresh token hash to DB
+    const tokenHash = await bcrypt.hash(refreshToken, SALT);
+    const expiresAt = add(new Date(), { days: 7 });
+    await prisma.refreshToken.create({
+      data: { tokenHash, userId: user.id, expiresAt }
+    });
+
     return {
       accessToken,
       refreshToken,
@@ -55,16 +62,16 @@ export class AuthService {
     try {
       const payload = verifyRefreshToken(oldToken) as any;
       const tokens = await prisma.refreshToken.findMany({ where: { userId: payload.userId } });
-      const match = await Promise.all(tokens.map(async t => ({ ok: await bcrypt.compare(oldToken, t.tokenHash), id: t.id }))).then(r => r.find(x => x.ok));
+      const match = await Promise.all(
+        tokens.map(async t => ({ ok: await bcrypt.compare(oldToken, t.tokenHash), id: t.id }))
+      ).then(r => r.find(x => x.ok));
       if (!match) throw { status: 401, message: "Invalid refresh token" };
-      // delete used token
       await prisma.refreshToken.delete({ where: { id: match.id } });
       const newRefresh = signRefreshToken({
         userId: payload.userId,
         email: payload.email,
         name: payload.name
       });
-
       const newAccess = signAccessToken({
         userId: payload.userId,
         email: payload.email,
@@ -73,7 +80,11 @@ export class AuthService {
       const tokenHash = await bcrypt.hash(newRefresh, SALT);
       const expiresAt = add(new Date(), { days: 7 });
       await prisma.refreshToken.create({ data: { tokenHash, userId: payload.userId, expiresAt } });
-      return { accessToken: newAccess, refreshToken: newRefresh, user: { id: payload.userId, email: payload.email } };
+      return {
+        accessToken: newAccess,
+        refreshToken: newRefresh,
+        user: { id: payload.userId, email: payload.email }
+      };
     } catch (err) {
       throw { status: 401, message: "Refresh failed" };
     }

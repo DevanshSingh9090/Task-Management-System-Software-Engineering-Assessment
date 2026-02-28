@@ -2,12 +2,12 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: "/api-proxy",
   withCredentials: true
 });
 
 let isRefreshing = false;
-let queue: Array<{ resolve: (v?: any)=>void, reject: (e:any)=>void, config: any }> = [];
+let queue: Array<{ resolve: (v?: any) => void; reject: (e: any) => void; config: any }> = [];
 
 const processQueue = (error: any = null) => {
   queue.forEach(({ resolve, reject, config }) => {

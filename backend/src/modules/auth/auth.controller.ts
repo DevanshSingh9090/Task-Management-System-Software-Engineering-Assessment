@@ -15,6 +15,13 @@ const cookieOpts = (maxAge: number) => ({
   maxAge
 });
 
+// Must match the same options used when setting cookies
+const clearOpts = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none" as const
+};
+
 // register
 router.post("/register", validateBody(registerSchema), async (req, res, next) => {
   try {
@@ -58,27 +65,25 @@ router.get("/me", async (req, res, next) => {
     if (!token) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
-
     const payload = verifyAccessToken(token) as {
       userId: number;
       email: string;
       name: string;
     };
-
     res.json({
-          success: true,
-          data: {
-            user: {
-              id: payload.userId,
-              email: payload.email,
-              name: payload.name
-            }
-          }
-        });
-      } catch (err) {
-        next(err);
+      success: true,
+      data: {
+        user: {
+          id: payload.userId,
+          email: payload.email,
+          name: payload.name
+        }
       }
     });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // logout
 router.post("/logout", async (req, res, next) => {
@@ -90,14 +95,13 @@ router.post("/logout", async (req, res, next) => {
         await AuthService.logoutByUserId(payload.userId);
       } catch (_) {}
     } else {
-      // try access token
       try {
         const payload = verifyAccessToken(req.cookies.accessToken) as any;
         await AuthService.logoutByUserId(payload.userId);
       } catch (_) {}
     }
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
+    res.clearCookie("accessToken", clearOpts);
+    res.clearCookie("refreshToken", clearOpts);
     res.json({ success: true });
   } catch (err) { next(err); }
 });
