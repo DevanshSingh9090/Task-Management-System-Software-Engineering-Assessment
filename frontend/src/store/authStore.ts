@@ -1,6 +1,6 @@
-import create from 'zustand';
+import { create } from 'zustand';
 
-type User = { id: number; email: string } | null;
+type User = { id: number; email: string; name?: string } | null;
 
 type State = {
   user: User;
@@ -11,5 +11,5 @@ type State = {
 export const useAuthStore = create<State>((set) => ({
   user: null,
   setUser: (u) => set({ user: u }),
-  clearUser: () => set({ user: null })
+  clearUser: () => set({ user: null }),
 }));

@@ -6,22 +6,19 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function LogoutButton() {
   const router = useRouter();
-  const clearUser = useAuthStore((s:any) => s.clearUser);
+  const clearUser = useAuthStore((s: any) => s.clearUser);
 
   const handleLogout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch (err) {
-      // ignore errors, continue to clear client
-    } finally {
+    try { await api.post('/auth/logout'); } catch {}
+    finally {
       clearUser();
-      toast.success('Logged out');
+      toast.success('Logged out successfully');
       router.push('/');
     }
   };
 
   return (
-    <button onClick={handleLogout} className="px-4 py-2 rounded bg-red-500 text-white">
+    <button onClick={handleLogout} className="btn-danger">
       Logout
     </button>
   );
